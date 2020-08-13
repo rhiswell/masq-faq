@@ -28,6 +28,14 @@
 
 **A:** The maximum number of QPCs cached in the RNIC and the caching strategy remains unchanged in MasQ and depends on the specific RNIC (I don’t figure out the concrete number). As shown in many works, RDMA itself has the scalability issue, ie, it’s performance drops when the created QPs exceed the maximum number the RNIC can cache. MasQ neither solves this problem nor makes it worse because MasQ doesn’t introduce any storage overhead on RNIC’s SRAM.
 
+**Q: RDMA NIC can only cache a limited number of QPs. Does MasQ limit the number of QPs for each tenant? This question can be generalized to any crucial resource in RDMA NIC.**
+
+**A:** Yes. MasQ can limit the maximum number of the QPs a virtual machine created following the provision policy because all the QP setup requests will be forwarded to MasQ’s software.
+
+As shown in many works, RDMA itself has the scalability issue, ie RDMA’s performance drops when the created QPs exceed the maximum number of the QPs the RNIC can cache. MasQ neither solve this problem (its should be solved in the RNIC hardware and orthogonal to MasQ) nor make it worse because MasQ, as a sort of software-based solution, doesn’t introduce any storage overhead on RNIC’s on-chip SRAM.
+
+Currently, the RNIC’s on-chip SRAM is shared between QPs. This may introduce interference of the RDMA performance among different tenants. So, we envision the RNIC can provide a mechanism to partition the SRAM and assign each tenant a dedicated piece. We believe that this can be used by the MasQ to achieve better performance isolation for the multi-tenant environment. 
+
 **Q: When doing the send operation, how does the RDMA NIC know which QPC to use? because MasQ is not placed on the critical path of sending, I assume it would still use the VM dst IP rather than the Host dst IP which it wont know to match?**
 
 **A:** MasQ uses a QP number (QPN) to match the QPC during data transmission. In RDMA, QPN is an ID to identify the QPC. It is returned to the application after the QPC is successfully created.  Then, during data transmission, it will be carried in each data sending request so that the RNIC can find the QPC to process the application data.
